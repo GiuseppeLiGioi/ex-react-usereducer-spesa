@@ -9,26 +9,12 @@ REMOVE_ITEM: Rimuove un articolo specifico dal carrello.
 UPDATE_QUANTITY: Modifica la quantità di un articolo esistente nel carrello, assicurandoti di gestire i casi limite (es. valori negativi).
 La struttura del reducer potrebbe essere:
 
-function cartReducer(state, action) {
-  switch (action.type) {
-    case 'ADD_ITEM':
-      // Logica per aggiungere un prodotto
-      break;
-    case 'REMOVE_ITEM':
-      // Logica per rimuovere un prodotto
-      break;
-    case 'UPDATE_QUANTITY':
-      // Logica per aggiornare la quantità
-      break;
-    default:
-      return state;
-  }
-}
+
 Inizializza lo stato con un array vuoto e usa useReducer per gestire le azioni del carrello.
 Obiettivo: Migliorare la struttura del codice utilizzando un approccio più scalabile e organizzato.
 */
 
-import { useState } from "react";
+import { useState, useReducer } from "react";
 
 
 const products = [
@@ -39,43 +25,35 @@ const products = [
 ];
 
 
-function App() {
- const [addedProducts, setAddedProducts] = useState([]);
-
-
-const updateProductQuantity = (name, e) => {
-  let qty =  parseInt(e.target.value) || 1;
-
-  setAddedProducts(addedProducts.map((ap) => {
-    if(ap.name === name){
-      return {  
-          ...ap,
-          quantity: qty 
-      }
-      
-    }else{
-      return ap;
-    }
-  }))
-}
-
-const removeFromCart = (product) => {
-  setAddedProducts((curr) => curr.filter((p) => p.name !== product.name))
-
-}
-
- const addToCart = (product) => {
-  const productIsInCart = addedProducts.find((p) => p.name === product.name)
-  if(!productIsInCart){
-    const productToAdd = {...product, quantity: 1}
-  setAddedProducts((curr) => [...curr, productToAdd])
-
-  }else{
-   updateProductQuantity(productIsInCart.name, productIsInCart.quantity)
-     
+//questo è il reducer terminato, prima ho seguito la lezione ed una volta compresa, ho stilato il reducer
+function cartReducer(addedProducts, action) {
+  switch (action.type) {
+    case 'ADD_ITEM':
+      const addedProduct = addedProducts.find((p) => p.name === action.payload)
+       if(addedProduct){
+         action.payload.quantity = addedProduct.quantity + 1 //seguita spiegazione---così assumerà un valore da aggiornare
+       }else{
+        return [...addedProducts,
+          {...action.payload, quantity: 1}
+        ]
+       }  
+      case 'UPDATE_QUANTITY':
+        return addedProducts.map((ap) => ap.name === action.payload.name ? {...ap, quantity: action.payload.quantity} : ap)
+        break;
+    case 'REMOVE_ITEM':
+      return addedProducts.filter((p) => p.name !== action.payload)
+      break;
+    default:
+      return state;
   }
 }
 
+
+
+
+
+function App() {
+ const [addedProducts, dispatchCart] = useReducer(cartReducer, []);
 
 const totale = addedProducts.reduce((acc, curr) => acc + (curr.price * curr.quantity),0);
 
@@ -91,7 +69,7 @@ const totale = addedProducts.reduce((acc, curr) => acc + (curr.price * curr.quan
            products.map((p, index) => (
               <div>
                 <li key={index}>{p.name}{p.price}</li>
-                <button onClick={() => addToCart(p)}>Aggiungi alla lista</button>
+                <button onClick={() => dispatchCart({type:"ADD_ITEM", payload: p})}>Aggiungi alla lista</button>
               </div>
               
             
@@ -108,9 +86,9 @@ const totale = addedProducts.reduce((acc, curr) => acc + (curr.price * curr.quan
               <>
               
               <li key={index}>
-                <p>{p.name}-{p.price.toFixed(2)}<span><input type="number" min="1"placeholder="inserisci la quantità" onChange={(e) => updateProductQuantity(p.name, e)} value={p.quantity}/></span></p>
+                <p>{p.name}-{p.price.toFixed(2)}<span><input type="number" min="1"placeholder="inserisci la quantità" onChange={(e) =>dispatchCart({type:'UPDATE_QUANTITY', payload: {name:p.name, quantity: parseInt(e.target.value)}})} value={p.quantity}/></span></p>
               </li>
-              <button onClick={() => removeFromCart(p)}>Rimuovi dal carrello</button>
+              <button onClick={() => dispatchCart({type: 'REMOVE_ITEM', payload: p.name})}>Rimuovi dal carrello</button>
               </>
             ))
           }
