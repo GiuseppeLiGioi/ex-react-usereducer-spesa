@@ -1,14 +1,34 @@
 /*
-🎯 Bonus 1: Modifica dinamica delle quantità
-Al posto di mostrare solo il numero quantity, usa un input di tipo number:
-Quando l’utente modifica il valore dell’input, usa la funzione updateProductQuantity per aggiornare la quantità del prodotto.
-Migliora la funzione updateProductQuantity per gestire:
-Numeri decimali: Forza la quantità a essere un numero intero.
-Valori inferiori a 1: Non permettere quantità negative o pari a zero.
-Obiettivo: Consentire una modifica precisa e dinamica delle quantità direttamente nel carrello.
+🎯 Bonus 2: Usare useReducer per gestire lo stato del carrello
+Sostituisci useState con useReducer per gestire lo stato del carrello.
+
+Configura il reducer con queste azioni:
+
+ADD_ITEM: Aggiunge un nuovo articolo al carrello con quantity = 1.
+REMOVE_ITEM: Rimuove un articolo specifico dal carrello.
+UPDATE_QUANTITY: Modifica la quantità di un articolo esistente nel carrello, assicurandoti di gestire i casi limite (es. valori negativi).
+La struttura del reducer potrebbe essere:
+
+function cartReducer(state, action) {
+  switch (action.type) {
+    case 'ADD_ITEM':
+      // Logica per aggiungere un prodotto
+      break;
+    case 'REMOVE_ITEM':
+      // Logica per rimuovere un prodotto
+      break;
+    case 'UPDATE_QUANTITY':
+      // Logica per aggiornare la quantità
+      break;
+    default:
+      return state;
+  }
+}
+Inizializza lo stato con un array vuoto e usa useReducer per gestire le azioni del carrello.
+Obiettivo: Migliorare la struttura del codice utilizzando un approccio più scalabile e organizzato.
 */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 
 const products = [
@@ -18,9 +38,10 @@ const products = [
   { name: 'Pasta', price: 0.7 },
 ];
 
+
 function App() {
  const [addedProducts, setAddedProducts] = useState([]);
- const [total, setTotal] = useState(0);
+
 
 const updateProductQuantity = (name, e) => {
   let qty =  parseInt(e.target.value) || 1;
@@ -37,15 +58,10 @@ const updateProductQuantity = (name, e) => {
     }
   }))
 }
-const updateTotal = () => {
-  const newTotal = addedProducts.reduce((acc, product) => {
-    return acc + (product.price * product.quantity)
-  },0)
-  setTotal(newTotal)
-}
+
 const removeFromCart = (product) => {
   setAddedProducts((curr) => curr.filter((p) => p.name !== product.name))
-    setTotal((curr) => curr-= parseInt(product.price * product.quantity))
+
 }
 
  const addToCart = (product) => {
@@ -53,16 +69,16 @@ const removeFromCart = (product) => {
   if(!productIsInCart){
     const productToAdd = {...product, quantity: 1}
   setAddedProducts((curr) => [...curr, productToAdd])
-  setTotal((curr) => curr+= parseInt(product.price * product.quantity))
+
   }else{
    updateProductQuantity(productIsInCart.name, productIsInCart.quantity)
-     setTotal((curr) => curr+= parseInt(product.price * product.quantity))
+     
   }
 }
 
-useEffect(() => {
-updateTotal();
-}, [addedProducts])
+
+const totale = addedProducts.reduce((acc, curr) => acc + (curr.price * curr.quantity),0);
+
 
 
   return (
@@ -99,7 +115,7 @@ updateTotal();
             ))
           }
         </ul>
-        <p>Totale da pagare: {total.toFixed(2)}</p>
+        <p>Totale da pagare: {totale.toFixed(2)}</p>
         </>
       )}
     </>
