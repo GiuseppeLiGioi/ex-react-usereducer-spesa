@@ -1,15 +1,14 @@
 /*
-📌 Milestone 3: Modificare il carrello
-Al click successivo del bottone "Aggiungi al carrello", se il prodotto è già presente:
-Usa una funzione updateProductQuantity per incrementare la proprietà quantity del prodotto esistente.
-Per ogni prodotto nel carrello, aggiungi un bottone "Rimuovi dal carrello":
-Al click, usa una funzione removeFromCart per rimuovere il prodotto dal carrello.
-Sotto alla lista del carrello, mostra il totale da pagare:
-Calcola il totale moltiplicando il prezzo per la quantità di ogni prodotto e somma tutti i risultati.
-Obiettivo: Gestire l’aggiunta, la rimozione e il calcolo del totale del carrello in modo dinamico.
+🎯 Bonus 1: Modifica dinamica delle quantità
+Al posto di mostrare solo il numero quantity, usa un input di tipo number:
+Quando l’utente modifica il valore dell’input, usa la funzione updateProductQuantity per aggiornare la quantità del prodotto.
+Migliora la funzione updateProductQuantity per gestire:
+Numeri decimali: Forza la quantità a essere un numero intero.
+Valori inferiori a 1: Non permettere quantità negative o pari a zero.
+Obiettivo: Consentire una modifica precisa e dinamica delle quantità direttamente nel carrello.
 */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 
 const products = [
@@ -22,13 +21,15 @@ const products = [
 function App() {
  const [addedProducts, setAddedProducts] = useState([]);
  const [total, setTotal] = useState(0);
-const updateProductQuantity = (name, quantity) => {
+
+const updateProductQuantity = (name, e) => {
+  let qty =  parseInt(e.target.value) || 1;
 
   setAddedProducts(addedProducts.map((ap) => {
     if(ap.name === name){
-      return {
-        ...ap,
-        quantity: quantity + 1
+      return {  
+          ...ap,
+          quantity: qty 
       }
       
     }else{
@@ -36,9 +37,15 @@ const updateProductQuantity = (name, quantity) => {
     }
   }))
 }
+const updateTotal = () => {
+  const newTotal = addedProducts.reduce((acc, product) => {
+    return acc + (product.price * product.quantity)
+  },0)
+  setTotal(newTotal)
+}
 const removeFromCart = (product) => {
   setAddedProducts((curr) => curr.filter((p) => p.name !== product.name))
-    setTotal((curr) => curr-= product.price)
+    setTotal((curr) => curr-= parseInt(product.price * product.quantity))
 }
 
  const addToCart = (product) => {
@@ -46,13 +53,16 @@ const removeFromCart = (product) => {
   if(!productIsInCart){
     const productToAdd = {...product, quantity: 1}
   setAddedProducts((curr) => [...curr, productToAdd])
-  setTotal((curr) => curr+= product.price)
+  setTotal((curr) => curr+= parseInt(product.price * product.quantity))
   }else{
    updateProductQuantity(productIsInCart.name, productIsInCart.quantity)
-     setTotal((curr) => curr+= product.price)
+     setTotal((curr) => curr+= parseInt(product.price * product.quantity))
   }
 }
 
+useEffect(() => {
+updateTotal();
+}, [addedProducts])
 
 
   return (
@@ -82,7 +92,7 @@ const removeFromCart = (product) => {
               <>
               
               <li key={index}>
-                <p>{p.name}-{p.quantity}-{p.price.toFixed(2)}</p>
+                <p>{p.name}-{p.price.toFixed(2)}<span><input type="number" min="1"placeholder="inserisci la quantità" onChange={(e) => updateProductQuantity(p.name, e)} value={p.quantity}/></span></p>
               </li>
               <button onClick={() => removeFromCart(p)}>Rimuovi dal carrello</button>
               </>
