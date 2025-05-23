@@ -1,17 +1,12 @@
 /*
-📌 Milestone 2: Aggiungere prodotti al carrello
-Aggiungi uno stato locale addedProducts (inizialmente un array vuoto) per rappresentare i prodotti nel carrello.
-Per ogni prodotto della lista, aggiungi un bottone "Aggiungi al carrello":
-Al click del bottone, usa una funzione addToCart per:
-Aggiungere il prodotto al carrello se non è già presente, con una proprietà quantity = 1.
-Se il prodotto è già nel carrello, ignora l’azione.
-Sotto alla lista dei prodotti, mostra una lista dei prodotti nel carrello se addedProducts contiene almeno un elemento.
-Per ogni prodotto nel carrello, mostra:
-Nome
-Prezzo
-Quantità
-
-Obiettivo: L’utente può aggiungere prodotti al carrello e vedere una lista dei prodotti aggiunti.
+📌 Milestone 3: Modificare il carrello
+Al click successivo del bottone "Aggiungi al carrello", se il prodotto è già presente:
+Usa una funzione updateProductQuantity per incrementare la proprietà quantity del prodotto esistente.
+Per ogni prodotto nel carrello, aggiungi un bottone "Rimuovi dal carrello":
+Al click, usa una funzione removeFromCart per rimuovere il prodotto dal carrello.
+Sotto alla lista del carrello, mostra il totale da pagare:
+Calcola il totale moltiplicando il prezzo per la quantità di ogni prodotto e somma tutti i risultati.
+Obiettivo: Gestire l’aggiunta, la rimozione e il calcolo del totale del carrello in modo dinamico.
 */
 
 import { useState } from "react";
@@ -26,19 +21,39 @@ const products = [
 
 function App() {
  const [addedProducts, setAddedProducts] = useState([]);
+ const [total, setTotal] = useState(0);
+const updateProductQuantity = (name, quantity) => {
+
+  setAddedProducts(addedProducts.map((ap) => {
+    if(ap.name === name){
+      return {
+        ...ap,
+        quantity: quantity + 1
+      }
+      
+    }else{
+      return ap;
+    }
+  }))
+}
+const removeFromCart = (product) => {
+  setAddedProducts((curr) => curr.filter((p) => p.name !== product.name))
+    setTotal((curr) => curr-= product.price)
+}
 
  const addToCart = (product) => {
-  const productIsInCart = addedProducts.some((p) => p.name === product.name)
+  const productIsInCart = addedProducts.find((p) => p.name === product.name)
   if(!productIsInCart){
     const productToAdd = {...product, quantity: 1}
   setAddedProducts((curr) => [...curr, productToAdd])
+  setTotal((curr) => curr+= product.price)
   }else{
-    return;
+   updateProductQuantity(productIsInCart.name, productIsInCart.quantity)
+     setTotal((curr) => curr+= product.price)
   }
-  console.log(addedProducts)
+}
 
-  
- }
+
 
   return (
     <>
@@ -64,16 +79,22 @@ function App() {
         <ul>
           {
             addedProducts.map((p, index) => (
+              <>
+              
               <li key={index}>
                 <p>{p.name}-{p.quantity}-{p.price.toFixed(2)}</p>
               </li>
+              <button onClick={() => removeFromCart(p)}>Rimuovi dal carrello</button>
+              </>
             ))
           }
         </ul>
+        <p>Totale da pagare: {total.toFixed(2)}</p>
         </>
       )}
     </>
   )
+
 }
 
 export default App
